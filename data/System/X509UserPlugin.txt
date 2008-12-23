@@ -257,7 +257,7 @@ Your webserver needs to be configured for SSL. Here is an extract of mine - an a
 | Plugin Author: | Foswiki:Main.TimotheLitt |
 | Copyright: | © 2007, 2008, Foswiki:Main.TimotheLitt |
 | License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
-| Plugin Version: | 20 Oct 2008 (V1.0-4) |
+| Plugin Version: | 23 Dec 2008 (V1.0-4) |
 | Change History: | <!-- versions below in reverse order --> |
 |  23 Dec 2008: | V1.0-4 Ported to Foswiki by Kenneth Lavrsen. Checked in untested as I do not have X509 environment. Feedback wanted |
 |  26 Oct 2008: | V1.0-3 Correct documentation of configuration parameters  |
