@@ -121,7 +121,7 @@ Because X.509 Certificates are automatically presented by the browser (assuming 
 To force authentication for other scripts, add them to the {AuthScripts} configuration variable
 
 ---++++ {Plugins}{X509UserPlugin}{RegistrationTopic}
-The topic name (Don't include the webname, which is either the main or the System web) of the user registration topic - normally UserRegistration. Only this topic (or users with CHANGE access to it) can use the X509 variable. Only this topic will bypass {ForceAuthentication}. Changing and renaming this topic should be restricted to the TwikiAdminGroup.
+The topic name (Don't include the webname, which is either the main or the System web) of the user registration topic - normally UserRegistration. Only this topic (or users with CHANGE access to it) can use the X509 variable. Only this topic will bypass {ForceAuthentication}. Changing and renaming this topic should be restricted to the AdminGroup.
 
 ---++++ {Plugins}{X509UserPlugin}{RequireWikinameFromCertificate}
 Select this option to force a user's WikiName to be derived from his/her X.509 distingushed name. When not selected, the user's WikiName is suggested from the certificate name, but can be overridded by the registration form.
@@ -270,4 +270,4 @@ Your webserver needs to be configured for SSL. Here is an extract of mine - an a
 | Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
 | Feedback: | http://foswiki.org/Extensions/%TOPIC%Dev |
 
-__Related Topics:__ %TWIKIWEB%.TWikiPlugins, %TWIKIWEB%.DeveloperDocumentationCategory, %TWIKIWEB%.AdminDocumentationCategory, %TWIKIWEB%.TWikiPreferences
+__Related Topics:__ [[%SYSTEMWEB%.Plugins][Plugins]], %SYSTEMWEB%.DeveloperDocumentationCategory, %SYSTEMWEB%.AdminDocumentationCategory, %SYSTEMWEB%.DefaultPreferences
