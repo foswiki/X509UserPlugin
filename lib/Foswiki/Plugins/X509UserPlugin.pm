@@ -30,13 +30,13 @@
 # Early prototypes were based on FakeBasicAuthRegPlugin.
 #
 # =========================
-package TWiki::Plugins::X509UserPlugin;
+package Foswiki::Plugins::X509UserPlugin;
 
 # Always use strict to enforce variable scoping
 use strict;
 
-require TWiki::Func;    # The plugins API
-require TWiki::Plugins; # For the API version
+require Foswiki::Func;    # The plugins API
+require Foswiki::Plugins; # For the API version
 
 # =========================
 # $VERSION is referred to by TWiki, and is the only global variable that
@@ -63,7 +63,7 @@ $NO_PREFS_IN_TOPIC = 1;
 
 $pluginName = 'X509UserPlugin';
 
-use TWiki::Users::X509UserMapping::Cert;
+use Foswiki::Users::X509UserMapping::Cert;
 
 =pod
 
@@ -77,7 +77,7 @@ REQUIRED
 
 Called to initialise the plugin. If everything is OK, should return
 a non-zero value. On non-fatal failure, should write a message
-using TWiki::Func::writeWarning and return 0. In this case
+using Foswiki::Func::writeWarning and return 0. In this case
 %FAILEDPLUGINS% will indicate which plugins failed.
 
 In the case of a catastrophic failure that will prevent the whole
@@ -92,19 +92,19 @@ sub initPlugin
     my( $topic, $web, $user, $installWeb ) = @_;
 
     # check for Plugins.pm versions
-    if( $TWiki::Plugins::VERSION < 1.2 ) {
-        TWiki::Func::writeWarning( "Version mismatch between $pluginName and Plugins.pm" );
+    if( $Foswiki::Plugins::VERSION < 1.2 ) {
+        Foswiki::Func::writeWarning( "Version mismatch between $pluginName and Plugins.pm" );
         return 0;
     }
     # Get plugin debug flag
-    $debug = $TWiki::cfg{Plugins}{X509UserPlugin}{Debug} || 0;
+    $debug = $Foswiki::cfg{Plugins}{X509UserPlugin}{Debug} || 0;
 
-    die "X509 User Mapping Manager is required by X509UerPlugin, but is not loaded." if( $TWiki::cfg{UserMappingManager} !~ /X509/ );
+    die "X509 User Mapping Manager is required by X509UerPlugin, but is not loaded." if( $Foswiki::cfg{UserMappingManager} !~ /X509/ );
 
-    TWiki::Func::registerTagHandler( 'X509', \&_X509TAG );
+    Foswiki::Func::registerTagHandler( 'X509', \&_X509TAG );
 
     # Plugin correctly initialized
-    TWiki::Func::writeDebug( "- TWiki::Plugins::${pluginName}::initPlugin( $web.$topic ) is OK" ) if $debug;
+    Foswiki::Func::writeDebug( "- Foswiki::Plugins::${pluginName}::initPlugin( $web.$topic ) is OK" ) if $debug;
     return 1;
 }
 
@@ -140,7 +140,7 @@ Return the *login* name.
 
 This handler is called very early, immediately after =earlyInitPlugin=.
 
-*Since:* TWiki::Plugins::VERSION = '1.010'
+*Since:* Foswiki::Plugins::VERSION = '1.010'
 
 =cut
 
@@ -148,7 +148,7 @@ sub initializeUserHandler
 {
 ### my ( $loginName, $url, $pathInfo ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
 
-#    TWiki::Func::writeDebug( "- ${pluginName}::initializeUserHandler( $_[0], $_[1] )" ) if $debug;
+#    Foswiki::Func::writeDebug( "- ${pluginName}::initializeUserHandler( $_[0], $_[1] )" ) if $debug;
 
     # Make sure that we have an HTTPs connection and a certificate.
     # This requires SSL
@@ -166,7 +166,7 @@ sub initializeUserHandler
     return $_[0] if( $_[0] !~ m|^/[\w]+=| );  # Check for and X.509 name: /XX=
 
     # Require a verified certificate - unless a command
-    return TWiki::Func::getDefaultUserName() unless( TWiki::Func::getContext()->{command_line} || defined $ENV{'SSL_CLIENT_VERIFY'} && $ENV{'SSL_CLIENT_VERIFY'} eq 'SUCCESS' );
+    return Foswiki::Func::getDefaultUserName() unless( Foswiki::Func::getContext()->{command_line} || defined $ENV{'SSL_CLIENT_VERIFY'} && $ENV{'SSL_CLIENT_VERIFY'} eq 'SUCCESS' );
 
 
     return $_[0];
@@ -181,7 +181,7 @@ sub initializeUserHandler
 
 Called when a new user registers with this TWiki.
 
-*Since:* TWiki::Plugins::VERSION = '1.010'
+*Since:* Foswiki::Plugins::VERSION = '1.010'
 
 =cut
 
@@ -189,7 +189,7 @@ sub DISABLED_registrationHandler
 {
 #    my ( $web, $wikiName, $loginName ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
 
-#    TWiki::Func::writeDebug( "- ${pluginName}::registrationHandler( $_[0], $_[1] )" ) if $debug;
+#    Foswiki::Func::writeDebug( "- ${pluginName}::registrationHandler( $_[0], $_[1] )" ) if $debug;
 
 
 }
@@ -198,7 +198,7 @@ sub DISABLED_registrationHandler
 
 ---++ _X509TAG
     * $session  - a reference to the TWiki session object 
-    * =$params=  - a reference to a TWiki::Attrs object containing parameters.
+    * =$params=  - a reference to a Foswiki::Attrs object containing parameters.
                  This is a simple hash that maps parameter names
                  to values, with _DEFAULT being the name for the default
                  parameter.
@@ -211,14 +211,14 @@ sub DISABLED_registrationHandler
 sub _X509TAG {
     my($session, $params, $theTopic, $theWeb) = @_;
 
-    my $regtopic = $TWiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || 'TWikiRegistration';
-    my $regweb = TWiki::Func::getMainWebname();
-    unless( TWiki::Func::topicExists($regweb, $regtopic ) ){
-	$regweb = TWiki::Func::getTwikiWebname();
+    my $regtopic = $Foswiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || 'TWikiRegistration';
+    my $regweb = Foswiki::Func::getMainWebname();
+    unless( Foswiki::Func::topicExists($regweb, $regtopic ) ){
+	$regweb = ::cfg{SystemWebName};
     }
 
     unless( $debug || ( $theTopic eq $regtopic && $theWeb eq $regweb )
-	           || TWiki::Func::checkAccessPermission( 'CHANGE', TWiki::Func::getWikiUserName(undef), undef, $regtopic, $regweb, undef ) ) {
+	           || Foswiki::Func::checkAccessPermission( 'CHANGE', Foswiki::Func::getWikiUserName(undef), undef, $regtopic, $regweb, undef ) ) {
 	return "%<NOP>X509% not permitted on this topic"
     }
 
@@ -226,7 +226,7 @@ sub _X509TAG {
     my $remove = $params->{remove};
     my $replace = $params->{replace} || "";
 
-    TWiki::Func::writeDebug( "- TWiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) %X509{" . join( ", ", map { "$_=$params->{$_}" } (keys %$params) ) . "}%" ) if $debug;
+    Foswiki::Func::writeDebug( "- Foswiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) %X509{" . join( ", ", map { "$_=$params->{$_}" } (keys %$params) ) . "}%" ) if $debug;
 
     my $from = 'SSL_CLIENT_S';
 
@@ -243,7 +243,7 @@ sub _X509TAG {
 	# %X509{ DNfield login="" remove="" replace="" }%
 	my $cert = $params->{login} ||  $ENV{"${from}_DN"} || "";
 
-	$cert = TWiki::Users::X509UserMapping::Cert->parseDN( $cert );
+	$cert = Foswiki::Users::X509UserMapping::Cert->parseDN( $cert );
 
 	$value = $cert->element( $element );
     } elsif( $params->{getloginname} ) {
@@ -264,11 +264,11 @@ sub _X509TAG {
     }
     
     if( defined $remove ) {
-	TWiki::Func::writeDebug( "- TWiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) |$element|$value|$remove|$replace|" ) if $debug;
+	Foswiki::Func::writeDebug( "- Foswiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) |$element|$value|$remove|$replace|" ) if $debug;
 	  eval ( "\$value =~ s/$remove/$replace/g;" );
 	  $value = "X509: eval failed: $@.  Check \$remove= and \$replace= parameters" if( $@ );
       }
-    TWiki::Func::writeDebug( "- TWiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) value is \"$value\"" ) if $debug;
+    Foswiki::Func::writeDebug( "- Foswiki::Plugins::${pluginName}::_X509TAG( $theWeb.$theTopic ) value is \"$value\"" ) if $debug;
 
     return $value;
 }
@@ -285,11 +285,11 @@ the topic body and in form fields. It may be called many times while
 a topic is being rendered.
 
 For variables with trivial syntax it is far more efficient to use
-=TWiki::Func::registerTagHandler= (see =initPlugin=).
+=Foswiki::Func::registerTagHandler= (see =initPlugin=).
 
 Plugins that have to parse the entire topic content should implement
 this function. Internal TWiki
-variables (and any variables declared using =TWiki::Func::registerTagHandler=)
+variables (and any variables declared using =Foswiki::Func::registerTagHandler=)
 are expanded _before_, and then again _after_, this function is called
 to ensure all %<nop>TAGS% are expanded.
 
@@ -300,7 +300,7 @@ removed from the text (though all other blocks such as &lt;pre> and
 __NOTE:__ meta-data is _not_ embedded in the text passed to this
 handler. Use the =$meta= object.
 
-*Since:* $TWiki::Plugins::VERSION 1.000
+*Since:* $Foswiki::Plugins::VERSION 1.000
 
 =cut
 
@@ -308,7 +308,7 @@ sub DISABLED_commonTagsHandler
 {
 ### my ( $text, $topic, $web, $included, $meta ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
 
-#    TWiki::Func::writeDebug( "- ${pluginName}::commonTagsHandler( $_[2].$_[1] )" ) if $debug;
+#    Foswiki::Func::writeDebug( "- ${pluginName}::commonTagsHandler( $_[2].$_[1] )" ) if $debug;
 
     return undef;
 }

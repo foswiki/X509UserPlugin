@@ -1,8 +1,0 @@
-data/TWiki/X509UserPlugin.txt 0644
-data/Sandbox/TWikiRegistration.txt 0644
-lib/TWiki/Users/X509UserMapping.pm 0444
-lib/TWiki/Users/X509UserMapping/Cert.pm 0444
-lib/TWiki/Users/X509PasswdUser.pm 0444
-lib/TWiki/Plugins/X509UserPlugin.pm 0444
-lib/TWiki/Plugins/X509UserPlugin/Config.spec 0444
-lib/TWiki/LoginManager/X509Login.pm 0444

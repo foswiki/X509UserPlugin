@@ -1,0 +1,8 @@
+data/System/X509UserPlugin.txt 0644
+data/Sandbox/TWikiRegistration.txt 0644
+lib/Foswiki/Users/X509UserMapping.pm 0444
+lib/Foswiki/Users/X509UserMapping/Cert.pm 0444
+lib/Foswiki/Users/X509PasswdUser.pm 0444
+lib/Foswiki/Plugins/X509UserPlugin.pm 0444
+lib/Foswiki/Plugins/X509UserPlugin/Config.spec 0444
+lib/Foswiki/LoginManager/X509Login.pm 0444
