@@ -1,7 +1,7 @@
-# Module of TWiki Enterprise Collaboration Platform, http://TWiki.org/
+# Module of Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
 # Copyright (C) 2006, 2008 Timothe Litt, litt@acm.org
-# and TWiki Contributors. All Rights Reserved. TWiki Contributors
+# and Foswiki Contributors. All Rights Reserved. Foswiki Contributors
 # are listed in the AUTHORS file in the root of this distribution.
 # NOTE: Please extend that file, not this notice.
 #
@@ -18,7 +18,7 @@
 # As per the GPL, removal of this notice is prohibited.
 
 
-package TWiki::Users::X509UserMapping::Cert;
+package Foswiki::Users::X509UserMapping::Cert;
 
 use strict;
 

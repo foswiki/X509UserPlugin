@@ -1,9 +1,6 @@
-# Module of TWiki Enterprise Collaboration Platform, http://TWiki.org/
+# Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2005-2006 TWiki Contributors.
-# All Rights Reserved. TWiki Contributors
-# are listed in the AUTHORS file in the root of this distribution.
-# NOTE: Please extend that file, not this notice.
+# Copyright (C) 2007, 2008, Timothe Litt
 #
 # Additional copyrights apply to some or all of the code in this
 # file as follows:
@@ -21,9 +18,10 @@
 #
 # As per the GPL, removal of this notice is prohibited.
 
+
 =pod
 
----+ package TWiki::LoginManager::X509Login
+---+ package Foswiki::LoginManager::X509Login
 
 This is login manager that you can specify in the security setup section of
 [[%SCRIPTURL{"configure"}%][configure]]. It instructs TWiki to
@@ -35,13 +33,13 @@ ending in "auth". The latter should be symlinks to existing scripts; e.g.,
 
 See also TWikiUserAuthentication.
 
-Subclass of TWiki::LoginManager; see that class for documentation of the
+Subclass of Foswiki::LoginManager; see that class for documentation of the
 methods of this class.
 
 =cut
 
-package TWiki::LoginManager::X509Login;
-use base 'TWiki::LoginManager';
+package Foswiki::LoginManager::X509Login;
+use base 'Foswiki::LoginManager';
 
 use strict;
 use Assert;
@@ -63,7 +61,7 @@ sub new {
     $this->{twiki} = $session;
 
     # Can't logout, though
-    TWiki::registerTagHandler('LOGOUT', sub { return '' });
+    Foswiki::registerTagHandler('LOGOUT', sub { return '' });
     return $this;
 }
 
@@ -81,9 +79,9 @@ sub checkAccess {
     my $this = shift;
     my $twiki = $this->{twiki};
 
-    return $this->SUPER::checkAccess($twiki) unless( $TWiki::cfg{Plugins}{X509UserPlugin}{ForceAuthentication} );
+    return $this->SUPER::checkAccess($twiki) unless( $Foswiki::cfg{Plugins}{X509UserPlugin}{ForceAuthentication} );
 
-    return undef unless( $TWiki::cfg{UseClientSessions} );
+    return undef unless( $Foswiki::cfg{UseClientSessions} );
 
     return undef if $twiki->inContext( 'command_line' );
 
@@ -94,19 +92,19 @@ sub checkAccess {
         my $script = $ENV{'SCRIPT_NAME'} || $ENV{'SCRIPT_FILENAME'};
         $script =~ s@^.*/([^./]+)@$1@g if $script;
 	
-        if( defined $script && $script eq 'view' ) { # All others can be forced with $TWiki::cfg{AuthScripts}
-	    if( $topic eq ($TWiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || "TWikiRegistration") ) {
+        if( defined $script && $script eq 'view' ) { # All others can be forced with $Foswiki::cfg{AuthScripts}
+	    if( $topic eq ($Foswiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || "TWikiRegistration") ) {
 
 		my $store = $this->{twiki}->{store};
 
-		if( $web eq $TWiki::cfg{UsersWebName} && $store->topicExists( $TWiki::cfg{UsersWebName}, $topic )  ||
-		    $web eq $TWiki::cfg{SystemWebName} && $store->topicExists( $TWiki::cfg{SystemWebName}, $topic ) ) {
+		if( $web eq $Foswiki::cfg{UsersWebName} && $store->topicExists( $Foswiki::cfg{UsersWebName}, $topic )  ||
+		    $web eq $Foswiki::cfg{SystemWebName} && $store->topicExists( $Foswiki::cfg{SystemWebName}, $topic ) ) {
 		    return undef;
 		}
 	    }
 
-            require TWiki::AccessControlException;
-            throw TWiki::AccessControlException(
+            require Foswiki::AccessControlException;
+            throw Foswiki::AccessControlException(
 						$script, $twiki->{user},
 						$web, $topic,
 						'authentication required' );
@@ -135,10 +133,10 @@ sub forceAuthentication {
     # See if there is an 'auth' version
     # of this script, may be a result of not being logged in.
     my $script = $ENV{SCRIPT_FILENAME};
-    $script =~ s/^(.*\/)([^\/]+?)($TWiki::cfg{ScriptSuffix})?$/$1/o;
+    $script =~ s/^(.*\/)([^\/]+?)($Foswiki::cfg{ScriptSuffix})?$/$1/o;
     my $scriptPath = $1;
     my $scriptName = $2;
-    $script = $scriptPath.$scriptName.'auth'.$TWiki::cfg{ScriptSuffix};
+    $script = $scriptPath.$scriptName.'auth'.$Foswiki::cfg{ScriptSuffix};
 
     if( ! $query->remote_user() && -e $script ) {
         # Assemble the new URL using the host, the changed script name,
@@ -148,7 +146,7 @@ sub forceAuthentication {
         my $url = $ENV{REQUEST_URI};
         if( $url && $url =~ m!(.*/$scriptName)([^?]*)! ) {
             # $url should not contain query string as it gets appended
-            # in TWiki::redirect. Script gets 'auth' appended.
+            # in Foswiki::redirect. Script gets 'auth' appended.
             $url = "$twiki->{urlHost}${1}auth$2";
         } else {
             if( $ENV{SCRIPT_NAME} &&
@@ -159,7 +157,7 @@ sub forceAuthentication {
                 # the last hope is to try building up the URL using
                 # the SCRIPT_FILENAME.
                 $url = $twiki->{urlHost}.$twiki->{scriptUrlPath}.'/'.
-                       $scriptName.'auth'.$TWiki::cfg{ScriptSuffix};
+                       $scriptName.'auth'.$Foswiki::cfg{ScriptSuffix};
             }
             if ($ENV{PATH_INFO}) {
                 $url .= '/' unless $url =~ m#/$# || $ENV{PATH_INFO} =~ m#^/#;
@@ -202,15 +200,15 @@ if it needs to challenge the user
 =cut
 
 sub login {
-    my( $this, $query, $twikiSession ) = @_;
+    my( $this, $query, $foswikiSession ) = @_;
 
-    my $url = $twikiSession->getScriptUrl(
-        0, 'viewauth', $twikiSession->{webName}, $twikiSession->{topicName},
+    my $url = $foswikiSession->getScriptUrl(
+        0, 'viewauth', $foswikiSession->{webName}, $foswikiSession->{topicName},
         t => time());
 
     $url .= ( ';' . $query->query_string() ) if $query->query_string();
 
-    $twikiSession->redirect( $url, 1 );
+    $foswikiSession->redirect( $url, 1 );
 }
 
 
@@ -232,7 +230,7 @@ sub getUser {
 	if( $query ) {
 	    $authUser = $query->remote_user();
 	}
-        TWiki::LoginManager::_trace($this, "apache getUser says ".($authUser||'undef'));
+        Foswiki::LoginManager::_trace($this, "apache getUser says ".($authUser||'undef'));
     }
     return $authUser;
 }

@@ -1,4 +1,4 @@
-# Plugin for TWiki Collaboration Platform, http://TWiki.org/
+# Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
 # Copyright (C) 2000-2003 Andrea Sterbini, a.sterbini@flashnet.it
 # Copyright (C) 2001-2004 Peter Thoeny, peter@thoeny.com
@@ -22,7 +22,7 @@
 # The actual user mapping and password management functions are handled by
 # X509UserMapping:: and X509PasswdUser:: respectively.
 #
-# This plugin simply makes the fields of the DN available as TWiki variables.
+# This plugin simply makes the fields of the DN available as Foswiki variables.
 #
 # Each element of the DN is accessible using its element name using
 # the element method of X509UserMapping::Cert::.
@@ -39,11 +39,11 @@ require Foswiki::Func;    # The plugins API
 require Foswiki::Plugins; # For the API version
 
 # =========================
-# $VERSION is referred to by TWiki, and is the only global variable that
+# $VERSION is referred to by Foswiki, and is the only global variable that
 # *must* exist in this package.
 use vars qw( $VERSION $RELEASE $SHORTDESCRIPTION $debug $pluginName $NO_PREFS_IN_TOPIC );
 
-# This should always be $Rev: 15942 (11 Aug 2008) $ so that TWiki can determine the checked-in
+# This should always be $Rev: 15942 (11 Aug 2008) $ so that Foswiki can determine the checked-in
 # status of the plugin. It is used by the build automation tools, so
 # you should leave it alone.
 $VERSION = '$Rev: 15942 (11 Aug 2008) $';
@@ -54,8 +54,8 @@ $VERSION = '$Rev: 15942 (11 Aug 2008) $';
 $RELEASE = 'V1.0-3';
 
 # Short description of this plugin
-# One line description, is shown in the %TWIKIWEB%.TextFormattingRules topic:
-$SHORTDESCRIPTION = 'X509 Authentication support, used by TWiki Administrators';
+# One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
+$SHORTDESCRIPTION = 'X509 Authentication support, used by Foswiki Administrators';
 
 # Do not parse plugin topic for preferences
 
@@ -132,7 +132,7 @@ sub DISABLED_earlyInitPlugin
    * =$loginName= - login name recovered from $ENV{REMOTE_USER}
    * =$url= - request url
    * =$pathInfo= - pathinfo from the CGI query
-Allows a plugin to set the username. Normally TWiki gets the username
+Allows a plugin to set the username. Normally Foswiki gets the username
 from the login manager. This handler gives you a chance to override the
 login manager.
 
@@ -179,7 +179,7 @@ sub initializeUserHandler
    * =$wikiName= - users wiki name
    * =$loginName= - users login name
 
-Called when a new user registers with this TWiki.
+Called when a new user registers with this Foswiki.
 
 *Since:* Foswiki::Plugins::VERSION = '1.010'
 
@@ -197,7 +197,7 @@ sub DISABLED_registrationHandler
 =pod 
 
 ---++ _X509TAG
-    * $session  - a reference to the TWiki session object 
+    * $session  - a reference to the Foswiki session object 
     * =$params=  - a reference to a Foswiki::Attrs object containing parameters.
                  This is a simple hash that maps parameter names
                  to values, with _DEFAULT being the name for the default
@@ -211,8 +211,8 @@ sub DISABLED_registrationHandler
 sub _X509TAG {
     my($session, $params, $theTopic, $theWeb) = @_;
 
-    my $regtopic = $Foswiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || 'TWikiRegistration';
-    my $regweb = Foswiki::Func::getMainWebname();
+    my $regtopic = $Foswiki::cfg{Plugins}{X509UserPlugin}{RegistrationTopic} || 'UserRegistration';
+    my $regweb = $Foswiki::cfg{UsersWebName};
     unless( Foswiki::Func::topicExists($regweb, $regtopic ) ){
 	$regweb = ::cfg{SystemWebName};
     }
@@ -288,7 +288,7 @@ For variables with trivial syntax it is far more efficient to use
 =Foswiki::Func::registerTagHandler= (see =initPlugin=).
 
 Plugins that have to parse the entire topic content should implement
-this function. Internal TWiki
+this function. Internal Foswiki
 variables (and any variables declared using =Foswiki::Func::registerTagHandler=)
 are expanded _before_, and then again _after_, this function is called
 to ensure all %<nop>TAGS% are expanded.

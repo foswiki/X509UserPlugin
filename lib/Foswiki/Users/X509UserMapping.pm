@@ -1,7 +1,8 @@
-# Module of TWiki Enterprise Collaboration Platform, http://TWiki.org/
+# Module of Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
 # Copyright (C) 2007 Sven Dowideit, SvenDowideit@distributedINFORMATION.com
-# and TWiki Contributors. All Rights Reserved. TWiki Contributors
+# Copyright (C) 2005-2008 Timothe Litt, litt@acm.org
+# and Foswiki Contributors. All Rights Reserved. Foswiki Contributors
 # are listed in the AUTHORS file in the root of this distribution.
 # NOTE: Please extend that file, not this notice.
 #
@@ -17,58 +18,58 @@
 #
 # As per the GPL, removal of this notice is prohibited.
 
-=begin twiki
+=begin TML
 
----+ package TWiki::Users::X509UserMapping
+---+ package Foswiki::Users::X509UserMapping
 
-The User mapping is the process by which TWiki maps from a username (a login name)
+The User mapping is the process by which Foswiki maps from a username (a login name)
 to a wikiname and back. It is also where groups are defined.
 
-By default TWiki maintains user topics and group topics in the %MAINWEB% that
+By default Foswiki maintains user topics and group topics in the %USERSWEB% that
 define users and group. These topics are
-   * !TWikiUsers - stores a mapping from usernames to TWiki names
+   * !WikiUsers - stores a mapping from usernames to Foswiki names
    * !WikiName - for each user, stores info about the user
    * !GroupNameGroup - for each group, a topic ending with "Group" stores a list of users who are part of that group.
 
 This is a subclass of UserMapping that implements X.509 certificate-based users.
 Groups are handled by topics.
 
-This could ALMOST be a subclass of TWiki::Users::TWikiUserMapping, but it gets a bit too messy.
+This could ALMOST be a subclass of Foswiki::Users::TopicUserMapping, but it gets a bit too messy.
 
 =cut
 
-package TWiki::Users::X509UserMapping;
-use base 'TWiki::UserMapping';
+package Foswiki::Users::X509UserMapping;
+use base 'Foswiki::UserMapping';
 
 use strict;
 use Assert;
 use Error qw( :try );
 
-use TWiki::Users::X509UserMapping::Cert;
+use Foswiki::Users::X509UserMapping::Cert;
 
 
 #use Monitor;
-#Monitor::MonitorMethod('TWiki::Users::X509UserMapping');
+#Monitor::MonitorMethod('Foswiki::Users::X509UserMapping');
 
-=begin twiki
+=begin TML
 
 ---++ ClassMethod new ($session, $impl)
 
 Constructs a new user mapping handler of this type, referring to $session
-for any required TWiki services.
+for any required Foswiki services.
 
 =cut
 
 sub new {
     my( $class, $session ) = @_;
 
-    if( $TWiki::cfg{PasswordManager} ne 'TWiki::Users::X509PasswdUser' ) {
-	die "X509UserMapping requires X509PasswdUser, not $TWiki::cfg{PasswordManager}.  Please fix in configure.";
+    if( $Foswiki::cfg{PasswordManager} ne 'Foswiki::Users::X509PasswdUser' ) {
+	die "X509UserMapping requires X509PasswdUser, not $Foswiki::cfg{PasswordManager}.  Please fix in configure.";
     }
 
     my $this = $class->SUPER::new( $session, 'X509' );
 
-    my $implPasswordManager = $TWiki::cfg{PasswordManager};
+    my $implPasswordManager = $Foswiki::cfg{PasswordManager};
     eval "require $implPasswordManager";
     die $@ if $@;
     $this->{passwords} = $implPasswordManager->new( $session );
@@ -78,19 +79,19 @@ sub new {
     # registration.
     if ($this->{passwords}->readOnly()) {
         $session->writeWarning( 'X509UserMapping has TURNED OFF EnableNewUserRegistration, because the password file is read only.' );
-        $TWiki::cfg{Register}{EnableNewUserRegistration} = 0;
+        $Foswiki::cfg{Register}{EnableNewUserRegistration} = 0;
     }
 
     # Certificates aren't login names in the sense of things users can enter.
-    # But some of the TWiki infrastructure checks for this before calling us.
+    # But some of the Foswiki infrastructure checks for this before calling us.
 
-    if (!$TWiki::cfg{Register}{AllowLoginName}) {
+    if (!$Foswiki::cfg{Register}{AllowLoginName}) {
         $session->writeWarning( 'X509UserMapping has TURNED ON AllowLoginName, because it seems to be required for certificates.' );
-        $TWiki::cfg{Register}{AllowLoginName} = 1;
+        $Foswiki::cfg{Register}{AllowLoginName} = 1;
     }
 
 	#SMELL: and this is a second user object
-	#TODO: combine with the one in TWiki::Users
+	#TODO: combine with the one in Foswiki::Users
     #$this->{U2L} = {};
     $this->{L2U} = {};
     $this->{U2W} = {};
@@ -100,7 +101,7 @@ sub new {
     return $this;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod finish()
 Break circular references.
@@ -122,7 +123,7 @@ sub finish {
     $this->SUPER::finish();
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod supportsRegistration () -> false
 return 1 if the UserMapper supports registration (ie can create new users)
@@ -133,11 +134,11 @@ sub supportsRegistration {
     return 1;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod handlesUser ( $cUID, $login, $wikiname) -> $boolean
 
-Called by the TWiki::Users object to determine which loaded mapping
+Called by the Foswiki::Users object to determine which loaded mapping
 to use for a given user.
 
 The user can be identified by any of $cUID, $login or $wikiname. Any of
@@ -164,7 +165,7 @@ sub handlesUser {
 }
 
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod login2cUID ($login, $dontcheck) -> $cUID
 
@@ -185,10 +186,10 @@ sub login2cUID {
         return undef unless (_userReallyExists($this, $login));
     }
 
-    return $this->{mapping_id}.TWiki::Users::mapLogin2cUID($login);
+    return $this->{mapping_id}.Foswiki::Users::mapLogin2cUID($login);
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod getLoginName ($cUID) -> login
 
@@ -239,14 +240,14 @@ sub _userReallyExists {
     return 0;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod addUser ($login, $wikiname, $password, $emails) -> $cUID
 
 throws an Error::Simple 
 
 Add a user to the persistant mapping that maps from usernames to wikinames
-and vice-versa. Names must be acceptable to $TWiki::cfg{NameFilter}
+and vice-versa. Names must be acceptable to $Foswiki::cfg{NameFilter}
 $login must *always* be specified. $wikiname may be undef, in which case
 the user mapper should make one up.
 This function must return a *canonical user id* that it uses to uniquely
@@ -266,7 +267,7 @@ sub addUser {
 
     $password = "xxj31ZMTZzkVA"; # Required for apache certificate authentication.
 
-    $wikiname='' if( $TWiki::cfg{Plugins}{X509UserPlugin}{RequireWikinameFromCertificate} );
+    $wikiname='' if( $Foswiki::cfg{Plugins}{X509UserPlugin}{RequireWikinameFromCertificate} );
     $wikiname = $this->wikinameFromDN( $login ) unless( $wikiname );
 
     if( $this->{passwords}->fetchPass( $login )) {
@@ -290,27 +291,27 @@ sub addUser {
     my $user = _cacheUser( $this, $wikiname, $login );
     ASSERT($user) if DEBUG;
     
-    if( $TWiki::cfg{Plugins}{X509UserPlugin}{RegisterInUsersTopic} ) {
+    if( $Foswiki::cfg{Plugins}{X509UserPlugin}{RegisterInUsersTopic} ) {
 	my $store = $this->{session}->{store};
 	my( $meta, $text );
 	
-	if( $store->topicExists( $TWiki::cfg{UsersWebName},
-				 $TWiki::cfg{UsersTopicName} )) {
+	if( $store->topicExists( $Foswiki::cfg{UsersWebName},
+				 $Foswiki::cfg{UsersTopicName} )) {
 	    ( $meta, $text ) = $store->readTopic(
-						 undef, $TWiki::cfg{UsersWebName}, $TWiki::cfg{UsersTopicName} );
+						 undef, $Foswiki::cfg{UsersWebName}, $Foswiki::cfg{UsersTopicName} );
 	} else {
 	    ( $meta, $text ) = $store->readTopic(
-						 undef, $TWiki::cfg{SystemWebName}, 'TWikiUsersTemplate' );
+						 undef, $Foswiki::cfg{SystemWebName}, 'WikiUsersTemplate' );
 	}
 	
 	my $result = '';
 	my $entry = "   * $wikiname - ";
 	
 	# X509 login names are cybercrud, shouldn't publish
-	$entry .= $login . " - " if( $login && $TWiki::cfg{Plugins}{X509UserPlugin}{RegisterUsersWithLoginName} );
+	$entry .= $login . " - " if( $login && $Foswiki::cfg{Plugins}{X509UserPlugin}{RegisterUsersWithLoginName} );
 	
-	require TWiki::Time;
-	my $today = TWiki::Time::formatTime(time(), $TWiki::cfg{DefaultDateFormat}, 'gmtime');
+	require Foswiki::Time;
+	my $today = Foswiki::Time::formatTime(time(), $Foswiki::cfg{DefaultDateFormat}, 'gmtime');
 	
 	# add name alphabetically to list
 	
@@ -322,8 +323,8 @@ sub addUser {
 	    # solved
 	    if ( $entry ) {
 		my ( $web, $name, $odate ) = ( '', '', '' );
-		if ( $line =~ /^\s+\*\s($TWiki::regex{webNameRegex}\.)?($TWiki::regex{wikiWordRegex})\s*(?:-\s*\w+\s*)?-\s*(.*)/ ) {
-		    $web = $1 || $TWiki::cfg{UsersWebName};
+		if ( $line =~ /^\s+\*\s($Foswiki::regex{webNameRegex}\.)?($Foswiki::regex{wikiWordRegex})\s*(?:-\s*\w+\s*)?-\s*(.*)/ ) {
+		    $web = $1 || $Foswiki::cfg{UsersWebName};
 		    $name = $2;
 		    $odate = $3;
 		    $insidelist = 1;
@@ -365,9 +366,9 @@ sub addUser {
 	    $store->saveTopic(
 			      # SMELL: why is this Admin and not the RegoAgent??
 			      $this->{session}->{users}->getCanonicalUserID(
-									    $TWiki::cfg{AdminUserLogin}),
-			      $TWiki::cfg{UsersWebName},
-			      $TWiki::cfg{UsersTopicName},
+									    $Foswiki::cfg{AdminUserLogin}),
+			      $Foswiki::cfg{UsersWebName},
+			      $Foswiki::cfg{UsersTopicName},
 			      $result, $meta );
 	} catch Error::Simple with {
 	    # Failed to add user; must remove them from the password system too,
@@ -391,7 +392,7 @@ Compute a suggested/mandatory wikiname from a certificate's DN.
 
 Certificate authorities vary greatly in how they format a DN.
 
-While this code isn't infinitely flexible, it does allow the TWiki
+While this code isn't infinitely flexible, it does allow the Foswiki
 administrator to specify how to derive a wikiname from their 
 certificates' DNs.  
 
@@ -449,11 +450,11 @@ sub wikinameFromDN {
     my $certname = shift;
 
     my $wikiname;
-    my $cert = TWiki::Users::X509UserMapping::Cert->parseDN($certname);
+    my $cert = Foswiki::Users::X509UserMapping::Cert->parseDN($certname);
     
-    # Keep the string parsing code in sync with lib/TWiki/Configure/Checkers/Plugins/X509UserPlugin/System.pm
+    # Keep the string parsing code in sync with lib/Foswiki/Configure/Checkers/Plugins/X509UserPlugin/System.pm
 
-    my $mapstring = $TWiki::Cfg{Plugins}{X509UserPlugin}{Cert2Wiki} || "^CN";
+    my $mapstring = $Foswiki::Cfg{Plugins}{X509UserPlugin}{Cert2Wiki} || "^CN";
     my @mapstring;
     while( $mapstring ) {
 	if( $mapstring =~ /^\s*\"((?>(?:(?>[^\"\\]+)|\\.)*))\"(.*)$/ ) {
@@ -503,7 +504,7 @@ sub wikinameFromDN {
 	last PASS if( !$this->{passwords}->fetchPass( $wikiname ) || $pass >= $maxpass );
     }
 
-    unless( $wikiname && $wikiname =~ m/^$TWiki::regex{wikiWordRegex}$/ ) {
+    unless( $wikiname && $wikiname =~ m/^$Foswiki::regex{wikiWordRegex}$/ ) {
 	throw Error::Simple( "X509: Unable to translate $certname to a wikiname: Produced $wikiname; check \{X509UserPlugin\}\{X509Cert2Wiki\}" );
     }
 
@@ -518,7 +519,7 @@ sub wikinameFromDN {
     return $wikiname;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod removeUser( $cUID ) -> $boolean
 
@@ -544,7 +545,7 @@ sub removeUser {
     return $result;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod getWikiName ($cUID) -> $wikiname
 
@@ -570,13 +571,13 @@ sub getWikiName {
 	$wikiname = $this->getLoginName( $cUID );
 	if ($wikiname) {
 	    # sanitise the generated WikiName
-	    $wikiname =~ s/$TWiki::cfg{NameFilter}//go;
+	    $wikiname =~ s/$Foswiki::cfg{NameFilter}//go;
 	}
     }
     return $wikiname;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod userExists($cUID) -> $boolean
 
@@ -595,16 +596,16 @@ sub userExists {
     my $loginName = $this->getLoginName( $cUID );
     return 0 unless defined($loginName);
 
-    return 1 if( $loginName eq $TWiki::cfg{DefaultUserLogin} );
+    return 1 if( $loginName eq $Foswiki::cfg{DefaultUserLogin} );
 
-    # TWiki allows *groups* to log in
+    # Foswiki allows *groups* to log in
     return 1 if( $this->isGroup( $loginName ));
 
     # Look them up in the password manager (can be slow).
     return 1 if( $this->{passwords}->fetchPass( $loginName ));
 
 #    unless ( $this->{passwords}->canFetchUsers() ) {
-#        if (TWiki::Func::topicExists($TWiki::cfg{UsersWebName}, $loginName)) {
+#        if (Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $loginName)) {
 #            return 1;
 #        }
 #    }
@@ -612,9 +613,9 @@ sub userExists {
     return 0;
 }
 
-=begin twiki
+=begin TML
 
----++ ObjectMethod eachUser () -> TWiki::ListIterator of cUIDs
+---++ ObjectMethod eachUser () -> Foswiki::ListIterator of cUIDs
 
 See baseclass for documentation
 
@@ -625,23 +626,23 @@ sub eachUser {
 
     _loadMapping( $this );
     my @list = keys(%{$this->{U2W}});
-    require TWiki::ListIterator;
-    my $iter = new TWiki::ListIterator( \@list );
+    require Foswiki::ListIterator;
+    my $iter = new Foswiki::ListIterator( \@list );
     $iter->{filter} = sub {
         # don't claim users that are handled by the basemapping
         my $cUID = $_[0] || '';
         my $login = $this->{session}->{users}->getLoginName($cUID);
         my $wikiname =  $this->{session}->{users}->getWikiName($cUID);
         #print STDERR "**** $cUID  $login  $wikiname \n";
-        require TWiki::Plugins;
-        return !($TWiki::Plugins::SESSION->{users}->{basemapping}->handlesUser ( undef, $login, $wikiname) );
+        require Foswiki::Plugins;
+        return !($Foswiki::Plugins::SESSION->{users}->{basemapping}->handlesUser ( undef, $login, $wikiname) );
     };
     return $iter;
 }
 
 my %expanding;
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod eachGroupMember ($group) ->  listIterator of cUIDs
 
@@ -653,7 +654,7 @@ sub eachGroupMember {
     my $this = shift;
     my $group = shift;
 
-    return new TWiki::ListIterator( $this->{eachGroupMember}->{$group} )
+    return new Foswiki::ListIterator( $this->{eachGroupMember}->{$group} )
             if (defined($this->{eachGroupMember}->{$group}));
 
     my $store = $this->{session}->{store};
@@ -662,15 +663,15 @@ sub eachGroupMember {
     my $members = [];
 
     if( !$expanding{$group} &&
-          $store->topicExists( $TWiki::cfg{UsersWebName}, $group )) {
+          $store->topicExists( $Foswiki::cfg{UsersWebName}, $group )) {
         $expanding{$group} = 1;
         my $text =
           $store->readTopicRaw( undef,
-                                $TWiki::cfg{UsersWebName}, $group,
+                                $Foswiki::cfg{UsersWebName}, $group,
                                 undef );
 
         foreach( split( /\r?\n/, $text ) ) {
-            if( /$TWiki::regex{setRegex}GROUP\s*=\s*(.+)$/ ) {
+            if( /$Foswiki::regex{setRegex}GROUP\s*=\s*(.+)$/ ) {
                 next unless( $1 eq 'Set' );
                 # Note: if there are multiple GROUP assignments in the
                 # topic, only the last will be taken.
@@ -682,12 +683,12 @@ sub eachGroupMember {
     }
     $this->{eachGroupMember}->{$group} = $members;
 
-    require TWiki::ListIterator;
-    return new TWiki::ListIterator( $this->{eachGroupMember}->{$group} );
+    require Foswiki::ListIterator;
+    return new Foswiki::ListIterator( $this->{eachGroupMember}->{$group} );
 }
 
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod isGroup ($user) -> boolean
 
@@ -699,12 +700,12 @@ sub isGroup {
     my ($this, $user) = @_;
 
     # Groups have the same username as wikiname as canonical name
-    return 1 if $user eq $TWiki::cfg{SuperAdminGroup};
+    return 1 if $user eq $Foswiki::cfg{SuperAdminGroup};
 
     return $user =~ /Group$/;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod eachGroup () -> ListIterator of groupnames
 
@@ -715,12 +716,12 @@ See baseclass for documentation
 sub eachGroup {
     my ( $this ) = @_;
     _getListOfGroups( $this );
-    require TWiki::ListIterator;
-    return new TWiki::ListIterator( \@{$this->{groupsList}} );
+    require Foswiki::ListIterator;
+    return new Foswiki::ListIterator( \@{$this->{groupsList}} );
 }
 
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod eachMembership ($cUID) -> ListIterator of groups this user is in
 
@@ -732,21 +733,21 @@ sub eachMembership {
     my ($this, $user) = @_;
 
     _getListOfGroups( $this );
-    require TWiki::ListIterator;
-    my $it = new TWiki::ListIterator( \@{$this->{groupsList}} );
+    require Foswiki::ListIterator;
+    my $it = new Foswiki::ListIterator( \@{$this->{groupsList}} );
     $it->{filter} = sub {
         $this->isInGroup($user, $_[0]);
     };
     return $it;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod isAdmin( $cUID ) -> $boolean
 
 True if the user is an admin
-   * is $TWiki::cfg{SuperAdminGroup}
-   * is a member of the $TWiki::cfg{SuperAdminGroup}
+   * is $Foswiki::cfg{SuperAdminGroup}
+   * is a member of the $Foswiki::cfg{SuperAdminGroup}
 
 =cut
 
@@ -754,17 +755,17 @@ sub isAdmin {
     my( $this, $cUID ) = @_;
     my $isAdmin = 0;
     # TODO: this might not apply now that we have BaseUserMapping - test
-    if ($cUID eq $TWiki::cfg{SuperAdminGroup}) {
+    if ($cUID eq $Foswiki::cfg{SuperAdminGroup}) {
         $isAdmin = 1;
     } else {
-        my $sag = $TWiki::cfg{SuperAdminGroup};
+        my $sag = $Foswiki::cfg{SuperAdminGroup};
         $isAdmin = $this->isInGroup( $cUID, $sag );
     }
 
     return $isAdmin;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod findUserByEmail( $email ) -> \@cUIDs
    * =$email= - email address to look up
@@ -792,7 +793,7 @@ sub findUserByEmail {
     return \@users;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod getEmails($name) -> @emailAddress
 
@@ -835,7 +836,7 @@ sub getEmails {
     return keys %emails;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod setEmails($cUID, @emails) -> boolean
 
@@ -852,7 +853,7 @@ sub setEmails {
 }
 
 
-=begin twiki
+=begin TML
 
 ---++ StaticMethod mapper_getEmails($session, $user)
 
@@ -861,7 +862,7 @@ Only used if passwordManager->isManagingEmails= = =false
 
 Note: This method is PUBLIC because it is used by the tools/upgrade_emails.pl
 script, which needs to kick down to the mapper to retrieve email addresses
-from TWiki topics.
+from Foswiki topics.
 
 =cut
 
@@ -872,7 +873,7 @@ sub mapper_getEmails {
 
     my ($meta, $text) =
       $session->{store}->readTopic(
-          undef, $TWiki::cfg{UsersWebName},
+          undef, $Foswiki::cfg{UsersWebName},
           $session->{users}->getWikiName($user) );
 
     my @addresses;
@@ -893,7 +894,7 @@ sub mapper_getEmails {
     return @addresses;
 }
 
-=begin twiki
+=begin TML
 
 ---++ StaticMethod mapper_setEmails ($session, $user, @emails)
 
@@ -913,7 +914,7 @@ sub mapper_setEmails {
 
     my ($meta, $text) =
       $session->{store}->readTopic(
-          undef, $TWiki::cfg{UsersWebName},
+          undef, $Foswiki::cfg{UsersWebName},
           $user);
 
     if ($meta->get('FORM')) {
@@ -931,11 +932,11 @@ sub mapper_setEmails {
     }
 
     $session->{store}->saveTopic(
-        $cUID, $TWiki::cfg{UsersWebName}, $user, $text, $meta );
+        $cUID, $Foswiki::cfg{UsersWebName}, $user, $text, $meta );
 }
 
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod findUserByWikiName ($wikiname) -> list of cUIDs associated with that wikiname
 
@@ -954,7 +955,7 @@ sub findUserByWikiName {
     if( $this->isGroup( $wn )) {
         push( @users, $wn);
     } else {
-        # Add additional mappings defined in TWikiUsers
+        # Add additional mappings defined in WikiUsers
         _loadMapping( $this );
         if( $this->{W2U}->{$wn} ) {
             # Wikiname to UID mapping is defined
@@ -962,7 +963,7 @@ sub findUserByWikiName {
         } else {
             # Bloody compatibility!
             # The wikiname is always a registered user for the purposes of this
-            # mapping. We have to do this because TWiki defines access controls
+            # mapping. We have to do this because Foswiki defines access controls
             # in terms of mapped users, and if a wikiname is *missing* from the
             # mapping there is "no such user".
             push( @users, $this->login2cUID( $wn ));
@@ -972,7 +973,7 @@ sub findUserByWikiName {
     return \@users;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod checkPassword( $cUID, $password ) -> $boolean
 
@@ -988,7 +989,7 @@ sub checkPassword {
         $this->getLoginName($cUID), $pw );
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod setPassword( $cUID, $newPassU, $oldPassU ) -> $boolean
 
@@ -1017,7 +1018,7 @@ sub setPassword {
         $this->getLoginName( $user ), $newPassU, $oldPassU);
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod passwordError( ) -> $string
 
@@ -1062,10 +1063,10 @@ sub _collateGroups {
 }
 
 
-# get a list of groups defined in this TWiki
+# get a list of groups defined in this Foswiki
 sub _getListOfGroups {
     my $this = shift;
-    ASSERT(ref($this) eq 'TWiki::Users::X509UserMapping') if DEBUG;
+    ASSERT(ref($this) eq 'Foswiki::Users::X509UserMapping') if DEBUG;
 #??
     unless( $this->{groupsList} ) {
         my $users = $this->{session}->{users};
@@ -1078,7 +1079,7 @@ sub _getListOfGroups {
                                   users => $users },
               inline        => 1,
               search        => "Set GROUP =",
-              web           => $TWiki::cfg{UsersWebName},
+              web           => $Foswiki::cfg{UsersWebName},
               topic         => "*Group",
               type          => 'regex',
               nosummary     => 'on',
@@ -1115,13 +1116,13 @@ sub _expandUserList {
 
     $names ||= '';
     # comma delimited list of users or groups
-    # i.e.: "%MAINWEB%.UserA, UserB, Main.UserC # something else"
+    # i.e.: "%USERSWEB%.UserA, UserB, Main.UserC # something else"
     $names =~ s/(<[^>]*>)//go;     # Remove HTML tags
 
     my @l;
     foreach my $ident ( split( /[\,\s]+/, $names )) {
         # Dump the web specifier if userweb
-        $ident =~ s/^($TWiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+        $ident =~ s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
         next unless $ident;
         if( $this->isGroup( $ident )) {
             my $it = $this->eachGroupMember( $ident );

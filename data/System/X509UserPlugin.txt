@@ -1,5 +1,4 @@
-%META:TOPICINFO{author="X509_2fC_3dUS_2fST_3dMassachusetts_2fL_3dSouthborough_2fO_3dlitts_2enet_2fOU_3dLitt_20family_2fOU_3dNetwork_20Administration_2fCN_3dTimothe_20Litt_2femailAddress_3dtimothe_40litts_2enet" date="1225065326" format="1.1" reprev="1.10" version="1.10"}%
-%META:TOPICPARENT{name="TWikiPlugins"}%
+%META:TOPICINFO{author="ProjectContributor" date="1225065326" format="1.1" version="1.1"}%
 ---+ <NOP>%TOPIC%
 
 X509 Authentication support
@@ -11,15 +10,15 @@ This plugin supports the authentication of users using X.509 certificates.
 ---++ Overview
 This plugin relies on the !X509UserMapping, !X509Login and !X509PasswdUser modules, which are included in the kit.
 
-As a whole, this allows TWiki contributors to be automagically identified by X.509 certificate (long a wish listed in, for example: [[http://twiki.org/cgi-bin/view/TWiki/TWikiUserAuthentication][The TWiki User Authentication topic]].
+As a whole, this allows Foswiki contributors to be automagically identified by X.509 certificate.
 
-This plugin is used in the administration of a TWiki, and is not particularly useful for other contributors.
+This plugin is used in the administration of a Foswiki, and is not particularly useful for other contributors.
 
 There are a number of configurable policy options, discussed below. However, I'm sure I didn't anticipate everyone's requrements - I stopped a while after I met mine.
 
-The plugin proper allows you access to fields in the user certificate. This is used on the %SYSTEMWEB%.TWikiRegistration topic (Yours should, of course be in %USERSWEB%.TWikiRegistration), where it allows you to specify most of the form fields from the certificate.
+The plugin proper allows you access to fields in the user certificate. This is used on the %SYSTEMWEB%.UserRegistration topic (Yours should, of course be in %USERSWEB%.UserRegistration), where it allows you to specify most of the form fields from the certificate.
 
-The %<NOP>X509 variable can not be used on other pages unless you have CHANGE access to the Registration topic because a malicious user could mis-use it to expose arbitrary TWiki server state.
+The %<NOP>X509 variable can not be used on other pages unless you have CHANGE access to the Registration topic because a malicious user could mis-use it to expose arbitrary Foswiki server state.
 
 ---++ Syntax Rules
 
@@ -28,11 +27,11 @@ There are several syntaxes for the %<NOP>X509% variable. First, the syntax of an
 An X.509 certificate's distingushed name looks like:
 <verbatim>/C=US/ST=NewYork/L=Albany/O=Megalith Corporation/OU=Executives/OU=Wayward/CN=Myway, Lost II/emailAddress=rich@megalith.example.com</verbatim>
 
-A typical X.509 certificate has 2 Distinguished Names: that of the certificate's _issuer_ and that of the _subject_. The issuer is the authority that asserts that the certificate content is valid. The subject is the person (or in some cases, thing) that is being identified. As used here, the subject is the TWiki user. Thus, the subject's DN is of primary interest for authentication.
+A typical X.509 certificate has 2 Distinguished Names: that of the certificate's _issuer_ and that of the _subject_. The issuer is the authority that asserts that the certificate content is valid. The subject is the person (or in some cases, thing) that is being identified. As used here, the subject is the Foswiki user. Thus, the subject's DN is of primary interest for authentication.
 
 The subject's DN is placed in the =SSL_CLIENT_S_DN= environment variable by the webserver. It's also placed in the =REMOTE_USER= variable under =<NOP>FakeBasicAuth=, which is the environment expected by this plugin.
 
-Each /XX= is called an _element._ An element can occur multiple times; in the example, *Executives* and *Wayard* are both occurances of the *OU* element. TWiki's X509 subsystem names the first occurance *OU* and the second *OU.2*. The next would be *OU.3* and so on.
+Each /XX= is called an _element._ An element can occur multiple times; in the example, *Executives* and *Wayard* are both occurances of the *OU* element. Foswiki's X509 subsystem names the first occurance *OU* and the second *OU.2*. The next would be *OU.3* and so on.
 
 With !OpenSSL, you can extract the DN from a certificate in PEM format using :
 
@@ -84,27 +83,27 @@ All settings for this plugin are stored in the configure database, and are manag
 
 ---++ Plugin Installation Instructions
 
-__Note:__ You do not need to install anything on the browser to use this plugin. The following instructions are for the administrator who installs the plugin on the TWiki server.
+__Note:__ You do not need to install anything on the browser to use this plugin. The following instructions are for the administrator who installs the plugin on the Foswiki server.
 
    * Download the ZIP file from the Plugin Home (see below)
-   * Unzip *X509UserPlugin.zip* in your twiki installation directory. Content:
+   * Unzip *X509UserPlugin.zip* in your Foswiki installation directory. Content:
 
 | *File:* | *Description:* |
-| ==data/TWiki/X509UserPlugin.txt== | Plugin topic |
-| ==data/Sandbox/TWikiRegistration.txt== | Sample registration topic |
-| ==lib/TWiki/Plugins/X509UserPlugin.pm== | Perl module |
-| ==lib/TWiki/Plugins/X509UserPlugin/Config.spec== | Configure specification |
-| ==lib/TWiki/Configure/Checkers/Plugins/X509UserPlugin/System.pm== | Configuration checker |
-| ==lib/Twiki/LoginManager/X509Login.pm== | Perl module |
-| ==lib/TWiki/Users/X509PasswdUser.pm==  | Perl module |
-| ==lib/TWiki/Users/X509UserMapping.pm== | Perl module |
-| ==lib/TWiki/Users/X509UserMapping/Cert.pm== | Perl module |
+| ==data/System/X509UserPlugin.txt== | Plugin topic |
+| ==data/Sandbox/UserRegistration.txt== | Sample registration topic |
+| ==lib/Foswiki/Plugins/X509UserPlugin.pm== | Perl module |
+| ==lib/Foswiki/Plugins/X509UserPlugin/Config.spec== | Configure specification |
+| ==lib/Foswiki/Configure/Checkers/Plugins/X509UserPlugin/System.pm== | Configuration checker |
+| ==lib/Foswiki/LoginManager/X509Login.pm== | Perl module |
+| ==lib/Foswiki/Users/X509PasswdUser.pm==  | Perl module |
+| ==lib/Foswiki/Users/X509UserMapping.pm== | Perl module |
+| ==lib/Foswiki/Users/X509UserMapping/Cert.pm== | Perl module |
 
    * Prepare your environment 
       * If you have previously been using Apache login, edit your .htpasswd file to include WikiName before the email field.
       * Modify your webserver's configuration to support SSL and !FakeBasicAuth - see below for an example.
    * Configure the Plugin: 
-      * TWiki 4.0 and up: Run the [[%SCRIPTURL%/configure%SCRIPTSUFFIX%][configure]] script to enable the Plugin
+      * Run the [[%SCRIPTURL%/configure%SCRIPTSUFFIX%][configure]] script to enable the Plugin
       * Change the Plugin settings as needed
       * Update your Registration topic
    * Test if the installation was successful: 
@@ -122,7 +121,7 @@ Because X.509 Certificates are automatically presented by the browser (assuming 
 To force authentication for other scripts, add them to the {AuthScripts} configuration variable
 
 ---++++ {Plugins}{X509UserPlugin}{RegistrationTopic}
-The topic name (Don't include the webname, which is either the main or the twiki web) of the user registration topic - normally TWikiRegistration. Only this topic (or users with CHANGE access to it) can use the X509 variable. Only this topic will bypass {ForceAuthentication}. Changing and renaming this topic should be restricted to the TwikiAdminGroup.
+The topic name (Don't include the webname, which is either the main or the System web) of the user registration topic - normally UserRegistration. Only this topic (or users with CHANGE access to it) can use the X509 variable. Only this topic will bypass {ForceAuthentication}. Changing and renaming this topic should be restricted to the TwikiAdminGroup.
 
 ---++++ {Plugins}{X509UserPlugin}{RequireWikinameFromCertificate}
 Select this option to force a user's WikiName to be derived from his/her X.509 distingushed name. When not selected, the user's WikiName is suggested from the certificate name, but can be overridded by the registration form.
@@ -132,13 +131,13 @@ Select this option if you want users registerd in the %UsersWeb.%UsersTopicName%
 
 ---++++ {Plugins}{X509UserPlugin}{RegisterUsersWithLoginName}
 
-X.509 certificate names not only look like line noise, they often contain characters that will confuse TWiki if they are placed on the Users Topic. By default, they are omitted. If you really want to deal with the problems, set this option.
+X.509 certificate names not only look like line noise, they often contain characters that will confuse Foswiki if they are placed on the Users Topic. By default, they are omitted. If you really want to deal with the problems, set this option.
 
 ---++++ {Plugins}{X509UserPlugin}{Cert2Wiki}
 
 Certificate authorities vary greatly in how they format a DN.
 
-While the !X509UserMapping code isn't infinitely flexible, it does allow the TWiki administrator to specify how to derive a wikiname from their certificates' DNs.
+While the !X509UserMapping code isn't infinitely flexible, it does allow the Foswiki administrator to specify how to derive a wikiname from their certificates' DNs.
 
 {X509UserPlugin}{Cert2Wiki} specifies the algorithm as a mapping string.
 
@@ -188,18 +187,18 @@ If you have a simple environment, you can simply make these topic say "No" (poli
 
 ---+++ Webserver configuration
 Your webserver needs to be configured for SSL. Here is an extract of mine - an apache server. The key is how the =bin= directory is setup. You also need to setup the webserver's certificates - that's well documented elsewhere. <verbatim>
-    DocumentRoot "/var/www/twiki/webroot"
+    DocumentRoot "/var/www/foswiki/webroot"
     SSLOptions +FakeBasicAuth +StrictRequire +OptRenegotiate
     SSLVerifyClient require
     SSLVerifyDepth  10
 
-    ScriptAlias /twiki/bin "/var/www/twiki/bin"
-    Alias /twiki "/var/www/twiki"
+    ScriptAlias /foswiki/bin "/var/www/foswiki/bin"
+    Alias /foswiki "/var/www/foswiki"
 
     #Default / to /bin/view (which gets the main page)
-    RedirectMatch ^/$ https://wiki.example.com/twiki/bin/view
+    RedirectMatch ^/$ https://wiki.example.com/foswiki/bin/view
 
-<Directory "/var/www/twiki/bin">
+<Directory "/var/www/foswiki/bin">
     SSLOptions +StdEnvVars
 
     AllowOverride None
@@ -211,12 +210,12 @@ Your webserver needs to be configured for SSL. Here is an extract of mine - an a
     Options ExecCGI FollowSymLinks
     SetHandler cgi-script
 
-    AuthUserFile /var/www/twiki/data/.htpasswd
+    AuthUserFile /var/www/foswiki/data/.htpasswd
     AuthName 'Select your personal identity certificate for wiki access, or click "cancel" to register.'
     AuthType Basic
 
     # File to return on access control error (e.g. no certificate)
-   ErrorDocument 401 /twiki/bin/view/Main/TWikiRegistration
+   ErrorDocument 401 /foswiki/bin/view/Main/UserRegistration
 
     <FilesMatch "(passwd).*">
    Order Deny,Allow
@@ -241,7 +240,7 @@ Your webserver needs to be configured for SSL. Here is an extract of mine - an a
    Satisfy all
     </FilesMatch>
 
-    # When using Apache type login the following defines the TWiki scripts
+    # When using Apache type login the following defines the Foswiki scripts
     # that makes Apache ask the browser to authenticate. It is correct that
     # the view script is not authenticated, as it's used for registration.
 
@@ -255,25 +254,20 @@ Your webserver needs to be configured for SSL. Here is an extract of mine - an a
 
    * Set SHORTDESCRIPTION = Authenticate & identify users using X.509 certificates
 
-| Plugin Author: | TWiki:Main.TimotheLitt |
-| Copyright: | © 2007, 2008, TWiki:Main.TimotheLitt |
+| Plugin Author: | Foswiki:Main.TimotheLitt |
+| Copyright: | © 2007, 2008, Foswiki:Main.TimotheLitt |
 | License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
-| Plugin Version: | 20 Oct 2008 (V1.0-1) |
+| Plugin Version: | 20 Oct 2008 (V1.0-4) |
 | Change History: | <!-- versions below in reverse order --> |
-| 26 Oct 2008: | V1.0-3 Correct documentation of configuration parameters  |
-| 24 Oct 2008: | V1.0-2 Return better status from X509UserMapping:removeUser  |
-| 20 Oct 2008: | Initial version |
-| TWiki Dependency: | $TWiki::Plugins::VERSION 1.2, TWiki 4.2.3 |
+|  23 Dec 2008: | V1.0-4 Ported to Foswiki by Kenneth Lavrsen. Checked in untested as I do not have X509 environment. Feedback wanted |
+|  26 Oct 2008: | V1.0-3 Correct documentation of configuration parameters  |
+|  24 Oct 2008: | V1.0-2 Return better status from X509UserMapping:removeUser  |
+|  20 Oct 2008: | Initial version |
+| Dependency: | $Foswiki::Plugins::VERSION 1.2, Foswiki 1.0.0 |
 | CPAN Dependencies: | none |
 | Other Dependencies: | none |
 | Perl Version: | 5.8.8 |
-| [[TWiki:Plugins/Benchmark][Benchmarks]]: | %TWIKIWEB%.GoodStyle nn%, %TWIKIWEB%.FormattedSearch nn%, %TOPIC% nn% |
-| Plugin Home: | http://TWiki.org/cgi-bin/view/Plugins/%TOPIC% |
-| Feedback: | http://TWiki.org/cgi-bin/view/Plugins/%TOPIC%Dev |
-| Appraisal: | http://TWiki.org/cgi-bin/view/Plugins/%TOPIC%Appraisal |
+| Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
+| Feedback: | http://foswiki.org/Extensions/%TOPIC%Dev |
 
 __Related Topics:__ %TWIKIWEB%.TWikiPlugins, %TWIKIWEB%.DeveloperDocumentationCategory, %TWIKIWEB%.AdminDocumentationCategory, %TWIKIWEB%.TWikiPreferences
-
-<br />%TOPICCREATE{ template="Plugins.PluginDevTemplate" topic="X509UserPluginDev" disable="NewPluginTemplate" parameters="pluginName=X509UserPlugin&RelatedTopics=X509UserPlugin, X509UserPluginAppraisal" }% %TOPICCREATE{ template="Plugins.PluginAppraisalTemplate" topic="X509UserPluginAppraisal" disable="NewPluginTemplate" parameters="RelatedTopics=X509UserPlugin, X509UserPluginDev" }%
-
--- TWiki:Main.TimotheLitt - 20 Oct 2008

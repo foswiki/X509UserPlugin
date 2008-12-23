@@ -1,34 +1,32 @@
-# Module of TWiki Enterprise Collaboration Platform, http://TWiki.org/
+# Module of Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 1999-2007 Peter Thoeny, peter@thoeny.org
-# and TWiki Contributors. All Rights Reserved. TWiki Contributors
-# are listed in the AUTHORS file in the root of this distribution.
-# NOTE: Please extend that file, not this notice.
+# Copyright (C) 2000-2003 Andrea Sterbini, a.sterbini@flashnet.it
+# Copyright (C) 2001-2004 Peter Thoeny, peter@thoeny.com
+# Copyright (C) 2005-2008 Timothe Litt, litt@acm.org
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. For
-# more details read LICENSE in the root of this distribution.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-# As per the GPL, removal of this notice is prohibited.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details, published at 
+# http://www.gnu.org/copyleft/gpl.html
 
-=begin twiki
+=begin TML 
 
----+ package TWiki::Users::X509PasswdUser
+---+ package Foswiki::Users::X509PasswdUser
 
 Support for htpasswd and htdigest format password files containing X.509 certificate-based login namess.
 
-Subclass of [[TWikiUsersPasswordDotPm][ =TWiki::Users::Password= ]].
+Subclass of [[FoswikiUsersPasswordDotPm][ =Foswiki::Users::Password= ]].
 See documentation of that class for descriptions of the methods of this class.
 
 Apache authorizes access to files with SSL certificates using the full DN 
  e.g. /C=US/ST=Confusion/L=Unknown/O=Megalith/OU=Fun house/CN=Fake Test User/emailAddress=faker@example.com
-as the username.  This confuses the rest of TWiki due to lots of special characters, as well as
+as the username.  This confuses the rest of Foswiki due to lots of special characters, as well as
 being, well, ugly.
 
 We solve this problem in four parts:
@@ -50,8 +48,8 @@ See the X509UserPlugin topic for additional documentation.
 
 =cut
 
-package TWiki::Users::X509PasswdUser;
-use base 'TWiki::Users::Password';
+package Foswiki::Users::X509PasswdUser;
+use base 'Foswiki::Users::Password';
 use Fcntl qw( :flock :seek );
 
 use strict;
@@ -59,10 +57,10 @@ use Assert;
 use Error qw( :try );
 
 # 'Use locale' for internationalisation of Perl sorting in getTopicNames
-# and other routines - main locale settings are done in TWiki::setupLocale
+# and other routines - main locale settings are done in Foswiki::setupLocale
 BEGIN {
     # Do a dynamic 'use locale' for this module
-    if( $TWiki::cfg{UseLocale} ) {
+    if( $Foswiki::cfg{UseLocale} ) {
         require locale;
         import locale ();
     }
@@ -78,7 +76,7 @@ sub new {
     return $this;
 }
 
-=begin twiki
+=begin TML
 
 ---++ ObjectMethod finish()
 Break circular references.
@@ -106,7 +104,7 @@ returns true if the password file is not currently modifyable
 
 sub readOnly {
     my $this = shift;
-    my $path = $TWiki::cfg{Htpasswd}{FileName};
+    my $path = $Foswiki::cfg{Htpasswd}{FileName};
     #TODO: what if the data dir is also read only?
     if ((!-e $path) || ( -e $path && -r $path && !-d $path && -w $path)) {
         $this->{session}->enterContext('passwords_modifyable');
@@ -125,8 +123,8 @@ sub fetchUsers {
     foreach  (sort keys %$db) {
 	push @users, $_ if( $_ eq $db->{$_}->{wikiname} );
     }
-    require TWiki::ListIterator;
-    return new TWiki::ListIterator(\@users);
+    require Foswiki::ListIterator;
+    return new Foswiki::ListIterator(\@users);
 }
 
 sub wiki2Login {
@@ -146,23 +144,23 @@ sub _readPasswd {
     }
 
     my $db = {};
-    if ( ! -e $TWiki::cfg{Htpasswd}{FileName} ) {
+    if ( ! -e $Foswiki::cfg{Htpasswd}{FileName} ) {
         return $db;
     }
 
     # Htpasswd contains certificate, wikiname and emails
-    # TWikiUsers topic is not used (anymore)
+    # WikiUsers topic is not used (anymore)
     my $ifh;
     if( $lock ) {
-	open( $ifh, "+<$TWiki::cfg{Htpasswd}{FileName}" ) ||
-	    throw Error::Simple( $TWiki::cfg{Htpasswd}{FileName}.' open failed: '.$! );
+	open( $ifh, "+<$Foswiki::cfg{Htpasswd}{FileName}" ) ||
+	    throw Error::Simple( $Foswiki::cfg{Htpasswd}{FileName}.' open failed: '.$! );
 	$this->{passwordlock} = $ifh;
-	flock( $ifh, LOCK_EX )or throw Error::Simple( "Unable to lock $TWiki::cfg{Htpasswd}{FileName}: $!" );
+	flock( $ifh, LOCK_EX )or throw Error::Simple( "Unable to lock $Foswiki::cfg{Htpasswd}{FileName}: $!" );
 	return $this->{passworddata} if( defined( $this->{passworddata} ) );
     } else {
-	open( $ifh, "<$TWiki::cfg{Htpasswd}{FileName}" ) ||
-	    throw Error::Simple( $TWiki::cfg{Htpasswd}{FileName}.' open failed: '.$! );
-	flock( $ifh, LOCK_SH )or throw Error::Simple( "Unable to lock $TWiki::cfg{Htpasswd}{FileName}: $!" );
+	open( $ifh, "<$Foswiki::cfg{Htpasswd}{FileName}" ) ||
+	    throw Error::Simple( $Foswiki::cfg{Htpasswd}{FileName}.' open failed: '.$! );
+	flock( $ifh, LOCK_SH )or throw Error::Simple( "Unable to lock $Foswiki::cfg{Htpasswd}{FileName}: $!" );
     }
     my $line = '';
     while (defined ($line =<$ifh>) ) {
@@ -206,12 +204,12 @@ sub _savePasswd {
 
     umask( 077 );
     my $fh = $this->{passwordlock} or 
-	throw Error::Simple(  "X509 write without lock for $TWiki::cfg{Htpasswd}{FileName}" );
+	throw Error::Simple(  "X509 write without lock for $Foswiki::cfg{Htpasswd}{FileName}" );
     seek( $fh, 0, SEEK_SET ) or
-	throw Error::Simple(  "X509 seek 0 failed for $TWiki::cfg{Htpasswd}{FileName}" );
+	throw Error::Simple(  "X509 seek 0 failed for $Foswiki::cfg{Htpasswd}{FileName}" );
     print $fh _dumpPasswd($db);
     truncate( $fh, tell( $fh ) ) or
-	throw Error::Simple(  "X509 truncate failed for $TWiki::cfg{Htpasswd}{FileName}" );
+	throw Error::Simple(  "X509 truncate failed for $Foswiki::cfg{Htpasswd}{FileName}" );
 
     close( $fh );
     undef $this->{passwordlock};
