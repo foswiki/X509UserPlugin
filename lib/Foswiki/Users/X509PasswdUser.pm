@@ -21,7 +21,7 @@
 
 Support for htpasswd and htdigest format password files containing X.509 certificate-based login namess.
 
-Subclass of [[FoswikiUsersPasswordDotPm][ =Foswiki::Users::Password= ]].
+Subclass of =[[%SCRIPTURL{view}%/%SYSTEMWEB%/PerlDoc?module=Foswiki::Users::Password][Foswiki::Users::Password]]=.
 See documentation of that class for descriptions of the methods of this class.
 
 Apache authorizes access to files with SSL certificates using the full DN 
