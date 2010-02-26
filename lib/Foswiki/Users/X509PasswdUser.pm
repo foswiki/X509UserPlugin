@@ -73,6 +73,8 @@ sub new {
  
     # Always plaintext encoding for X509
 
+    $session->enterContext('passwords_managed');
+
     return $this;
 }
 
