@@ -49,7 +49,8 @@ See the X509UserPlugin topic for additional documentation.
 =cut
 
 package Foswiki::Users::X509PasswdUser;
-use base 'Foswiki::Users::Password';
+use Foswiki::Users::Password;
+our @ISA = qw( Foswiki::Users::Password );
 use Fcntl qw( :flock :seek );
 
 use strict;

@@ -39,7 +39,8 @@ This could ALMOST be a subclass of Foswiki::Users::TopicUserMapping, but it gets
 =cut
 
 package Foswiki::Users::X509UserMapping;
-use base 'Foswiki::UserMapping';
+use Foswiki::UserMapping;
+our @ISA = qw( Foswiki::UserMapping );
 
 use strict;
 use Assert;

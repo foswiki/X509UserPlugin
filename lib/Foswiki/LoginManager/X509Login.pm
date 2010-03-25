@@ -39,7 +39,8 @@ methods of this class.
 =cut
 
 package Foswiki::LoginManager::X509Login;
-use base 'Foswiki::LoginManager';
+use Foswiki::LoginManager;
+our @ISA = qw( Foswiki::LoginManager );
 
 use strict;
 use Assert;
